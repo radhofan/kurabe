@@ -1,8 +1,35 @@
-# Benchmarking CognoDB vs. other Graph Managed Databases
+# ⚡ Graph Database Cloud Benchmarking: CognoDB vs. Competitors
 
 In this repo, we created a reproducible benchmark suite comparing CognoDB Cloud against managed graph database cloud platforms (Neo4j AuraDB, Memgraph Cloud, ArangoDB Cloud, and SurrealDB Cloud) using identical datasets and query workloads under strict resource parity.
 
-## Provider Selection
+**Contents**
+- [🎯 Provider Selection](#-provider-selection)
+  - [Database Selection Criteria](#database-selection-criteria)
+  - [Selected Databases](#selected-databases)
+  - [Overview](#overview)
+- [⚙️ Hardware & Environment](#%EF%B8%8F-hardware--environment)
+  - [Advertised Provider Specs](#advertised-provider-specs)
+  - [Code-Level Resource Enforcement for Fairness](#code-level-resource-enforcement-for-fairness)
+- [📊 Dataset & Queries](#-dataset--queries)
+  - [Dataset](#dataset)
+  - [Indexing](#indexing)
+  - [Query Workloads](#query-workloads)
+  - [Batching](#batching)
+  - [Benchmark values](#benchmark-values)
+- [📈 Results](#-results)
+  - [Results Matrix](#results-matrix)
+  - [Performance Charts](#performance-charts)
+- [🧠 Engineering Deep Dive: Why the Numbers Differ](#-engineering-deep-dive-why-the-numbers-differ)
+  - [Data Ingest Throughput](#data-ingest-throughput)
+  - [Traversal Performance & Tail Latencies](#traversal-performance--tail-latencies)
+  - [Lookups & Aggregations](#lookups--aggregations)
+  - [Concurrency Scaling (80% Read / 20% Write)](#concurrency-scaling-80-read--20-write)
+- [⚠️ Threats to Validity](#%EF%B8%8F-threats-to-validity)
+- [🚀 Quickstart](#-quickstart)
+  - [Prerequisites](#prerequisites)
+  - [Setup](#setup)
+
+## 🎯 Provider Selection
 
 This benchmark suite evaluates CognoDB Cloud against four managed graph database platforms. The goal is a reproducible performance assessment across data loading, graph traversals, lookups, aggregations, and concurrent read/write throughput.
 
@@ -43,7 +70,7 @@ Here we provide overview of proposed cloud providers underlying technology to ge
 
 We understand that different technologies produce different speed because of their purposes, however thats the exact reason we are benchmarking it here.
 
-## Hardware & Environment
+## ⚙️ Hardware & Environment
 
 All providers were used by their lowest/free tier available plan. All regions are picked to the same US-EAST configuration to ensure same travel latency and since all provider happen to have that available.
 
@@ -71,7 +98,7 @@ To eliminate hardware advantages, we try our best to runner programmatically cap
 
 Hence readers need to take this comparison with a grain of salt, **the biggest factor is the CPU power** from each provider because we cannot reliably enforce OS level strictness, for RAM and storage we can cap it effectively though.
 
-## Dataset & Queries
+## 📊 Dataset & Queries
 
 ### Dataset
 
@@ -110,27 +137,25 @@ To ensure fair and reliable data loading across platforms:
 
 - **Batch Size Configuration**: Ingestion uses provider-optimal batch tuning. AuraDB, Memgraph, ArangoDB, and SurrealDB ingest nodes and relationships in batches of 1,000 items.
 
-<!-- CognoDB ingests nodes at 1,000 items per batch, but relationship ingestion uses smaller sub-batches of 250 items (`edge_batch_size = 250`). This sub-batching prevents cloud TCP connection drops on CognoDB's free tier when processing large Cypher transaction payloads over remote endpoints. We know that this is a major limitation, but based on our experiments, we could not reliably run it without getting broken TCP connections. -->
-
 ### Benchmark values
 
 The benchmark execution script (`benchmark.py`) and database reset script (`rebuild.py`) accept the following command-line parameters:
 
-| Script         | Flag                   | Type   | Default   | Description                                                                               |
-| :------------- | :--------------------- | :----- | :-------- | :---------------------------------------------------------------------------------------- |
-| `benchmark.py` | `--services`           | list   | `all`     | Target databases to benchmark (`cognodb`, `auradb`, `memgraph`, `surrealdb`, `arangodb`). |
-| `benchmark.py` | `--edges`              | int    | `100000`  | Number of relationships to sample from the SNAP Pokec dataset.                            |
-| `benchmark.py` | `--iterations`         | int    | `100`     | Number of query iterations per read workload after warmup.                                |
-| `benchmark.py` | `--results-dir`        | string | `results` | Output directory for CSV metrics matrix and generated PNG charts.                         |
+| Script         | Flag                     | Type   | Default   | Description                                                                               |
+| :------------- | :----------------------- | :----- | :-------- | :---------------------------------------------------------------------------------------- |
+| `benchmark.py` | `--services`             | list   | `all`     | Target databases to benchmark (`cognodb`, `auradb`, `memgraph`, `surrealdb`, `arangodb`). |
+| `benchmark.py` | `--edges`                | int    | `100000`  | Number of relationships to sample from the SNAP Pokec dataset.                            |
+| `benchmark.py` | `--iterations`           | int    | `100`     | Number of query iterations per read workload after warmup.                                |
+| `benchmark.py` | `--results-dir`          | string | `results` | Output directory for CSV metrics matrix and generated PNG charts.                         |
 | `benchmark.py` | `--apply-cpu-throttling` | bool   | `True`    | Toggles inter-query CPU duty-cycle throttling (`apply_cpu_throttling=False` disables it). |
-| `rebuild.py`   | `--services`           | list   | `all`     | Target databases to wipe and repopulate.                                                  |
-| `rebuild.py`   | `--nodes`              | int    | `20000`   | Target node count to populate during database rebuild.                                    |
-| `rebuild.py`   | `--edges`              | int    | `100000`  | Target relationship count to populate during database rebuild.                            |
-| `rebuild.py`   | `--batch-size`         | int    | `1000`    | Batch size for bulk insertion operations.                                                 |
+| `rebuild.py`   | `--services`             | list   | `all`     | Target databases to wipe and repopulate.                                                  |
+| `rebuild.py`   | `--nodes`                | int    | `20000`   | Target node count to populate during database rebuild.                                    |
+| `rebuild.py`   | `--edges`                | int    | `100000`  | Target relationship count to populate during database rebuild.                            |
+| `rebuild.py`   | `--batch-size`           | int    | `1000`    | Batch size for bulk insertion operations.                                                 |
 
 Note that we use default of 100K minimal relationship. This will still take about 25 minutes of running all services and getting the results.
 
-## Results
+## 📈 Results
 
 ### Results Matrix
 
@@ -167,7 +192,7 @@ Note that we use default of 100K minimal relationship. This will still take abou
 
 ![Mixed Workload Concurrency](results/mixed_workload_concurrency.png)
 
-## Engineering Deep Dive: Why the Numbers Differ
+## 🧠 Engineering Deep Dive: Why the Numbers Differ
 
 ### Data Ingest Throughput
 
@@ -197,7 +222,7 @@ Note that we use default of 100K minimal relationship. This will still take abou
 - **CognoDB** scaled from 0.4 QPS at 1 client to 8.2 QPS at 10 clients and 30.0 QPS at 40 clients under concurrent write-lock scheduling.
 - **SurrealDB** scaled from 0.8 QPS (1 client) to 6.0 QPS (10 clients) and 8.0 QPS (40 clients).
 
-## Threats to Validity
+## ⚠️ Threats to Validity
 
 - **CPU power**: Probably the because factor of all, based on our knowledge, we could not find enough reliable free providers that offers the exact same amount of CPU cores like free tier CognoDB, hence we tried our best using programmatic approaches although less favourable. We do provide the option of turning `apply_cpu_throttling` on or off if the reader wishes to see further comparison.
 - **Network Latency Impact**: All cloud instances were provisioned in the same region (US East) and tested over a stable connection to minimize latency variance as much as possible. However, network transit still plays a role in overall query execution times across remote cloud endpoints.
@@ -205,7 +230,7 @@ Note that we use default of 100K minimal relationship. This will still take abou
 - **Variance Testing**: Due to time limit assigned by the task (2 days), we were not simply able to run multiple times and get the variance result across multiple runs. Readers who want to reproduce this experiment is **strongly advised to run multiple times** to get reliable result. We provided option in code to run reach provoder multiple times, default is one run only.
 - **Dataset Generalization**: This study uses only the soc-pokec social dataset, to draw any meaningful conclusions, we consider it is best to add another dataset in the future which is easily doable via the modular code we designed.
 
-## Quickstart
+## 🚀 Quickstart
 
 ### Prerequisites
 
