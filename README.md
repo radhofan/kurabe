@@ -3,6 +3,7 @@
 In this repo, we created a reproducible benchmark suite comparing CognoDB Cloud against managed graph database cloud platforms (Neo4j AuraDB, Memgraph Cloud, ArangoDB Cloud, and SurrealDB Cloud) using identical datasets and query workloads under strict resource parity.
 
 **Contents**
+
 - [🎯 Provider Selection](#-provider-selection)
   - [Database Selection Criteria](#database-selection-criteria)
   - [Selected Databases](#selected-databases)
@@ -41,7 +42,7 @@ Our selection criteria came down to matching free-tier resource capabilities as 
 - **Different Architectural Methods**: We included multi-model and document-graph engines like [ArangoDB](https://www.arangodb.com/) to contrast native graph engines against alternative storage methods, and also since a lot of other studies tries to benchmark ArangoDB againts native graph a lot.
 - **Seldom-Used Comparison**: To enrich data analysis, we also decided to pick a less popular provider and technology like [SurrealDB](https://surrealdb.com/) was specifically included as a less common multi-model database to evaluate how modern multi-model engines handle graph workloads and compare againts native one.
 
-Our selection criteria also takes consideration from published benchmarks and comparative studies:
+Our selection criteria also takes consideration from published benchmarks and comparative studies using similar benchmarks we have chosen:
 
 - [Benchmarking Graph Databases: Neo4j vs Amazon Neptune vs ArangoDB](https://www.researchgate.net/publication/389357088_Benchmarking_Graph_Databases_Neo4j_vs_Amazon_Neptune_vs_ArangoDB)
 - [ArcadeDB Performance Benchmarks](https://arcadedb.com/benchmarks.html)
@@ -159,20 +160,20 @@ Note that we use default of 100K minimal relationship. This will still take abou
 
 ### Results Matrix
 
-| Metric                             | CognoDB           | AuraDB         | Memgraph        | SurrealDB           | ArangoDB        |
-| :--------------------------------- | :---------------- | :------------- | :-------------- | :------------------ | :-------------- |
-| **Load Time (sec)**                | 433.49            | 12.47          | 55.52           | 307.02              | 51.57           |
-| **Ingest Nodes/sec**               | 114.6             | 3,985.5        | 894.9           | 161.8               | 963.4           |
-| **Ingest Edges/sec**               | 230.7             | 8,021.8        | 1,801.1         | 325.7               | 1,939.0         |
-| **1-Hop p50 / p95 (ms)**           | 256.52 / 443.56   | 23.45 / 28.57  | 269.01 / 410.27 | 1,304.94 / 2,031.93 | 259.28 / 333.79 |
-| **2-Hop p50 / p95 (ms)**           | 272.73 / 545.52   | 23.54 / 29.49  | 276.82 / 357.34 | 1,158.61 / 1,300.57 | 261.48 / 346.63 |
-| **3-Hop p50 / p95 (ms)**           | 286.39 / 511.00   | 22.57 / 27.42  | 300.62 / 350.06 | 1,377.56 / 1,992.83 | 255.18 / 475.01 |
-| **Point Lookup p50 / p95 (ms)**    | 269.68 / 364.24   | 24.95 / 34.45  | 277.90 / 365.42 | 1,199.01 / 1,829.44 | 262.52 / 405.02 |
-| **Filtered Lookup p50 / p95 (ms)** | 280.74 / 1,410.51 | 24.56 / 57.14  | 305.28 / 360.08 | 1,559.70 / 1,966.50 | 263.96 / 349.32 |
-| **Aggregation p50 / p95 (ms)**     | 425.57 / 1,255.69 | 45.25 / 61.71  | 271.39 / 341.46 | 1,613.52 / 1,833.18 | 306.70 / 437.11 |
-| **Mixed 1 Client (QPS)**           | 0.4               | 41.0           | 3.0             | 0.8                 | 3.6             |
-| **Mixed 10 Clients (QPS)**         | 8.2               | 315.4          | 28.0            | 6.0                 | 34.4            |
-| **Mixed 40 Clients (QPS)**         | 30.0              | 203.8          | 128.8           | 8.0                 | 105.8           |
+| Metric                             | CognoDB           | AuraDB        | Memgraph        | SurrealDB           | ArangoDB        |
+| :--------------------------------- | :---------------- | :------------ | :-------------- | :------------------ | :-------------- |
+| **Load Time (sec)**                | 433.49            | 12.47         | 55.52           | 307.02              | 51.57           |
+| **Ingest Nodes/sec**               | 114.6             | 3,985.5       | 894.9           | 161.8               | 963.4           |
+| **Ingest Edges/sec**               | 230.7             | 8,021.8       | 1,801.1         | 325.7               | 1,939.0         |
+| **1-Hop p50 / p95 (ms)**           | 256.52 / 443.56   | 23.45 / 28.57 | 269.01 / 410.27 | 1,304.94 / 2,031.93 | 259.28 / 333.79 |
+| **2-Hop p50 / p95 (ms)**           | 272.73 / 545.52   | 23.54 / 29.49 | 276.82 / 357.34 | 1,158.61 / 1,300.57 | 261.48 / 346.63 |
+| **3-Hop p50 / p95 (ms)**           | 286.39 / 511.00   | 22.57 / 27.42 | 300.62 / 350.06 | 1,377.56 / 1,992.83 | 255.18 / 475.01 |
+| **Point Lookup p50 / p95 (ms)**    | 269.68 / 364.24   | 24.95 / 34.45 | 277.90 / 365.42 | 1,199.01 / 1,829.44 | 262.52 / 405.02 |
+| **Filtered Lookup p50 / p95 (ms)** | 280.74 / 1,410.51 | 24.56 / 57.14 | 305.28 / 360.08 | 1,559.70 / 1,966.50 | 263.96 / 349.32 |
+| **Aggregation p50 / p95 (ms)**     | 425.57 / 1,255.69 | 45.25 / 61.71 | 271.39 / 341.46 | 1,613.52 / 1,833.18 | 306.70 / 437.11 |
+| **Mixed 1 Client (QPS)**           | 0.4               | 41.0          | 3.0             | 0.8                 | 3.6             |
+| **Mixed 10 Clients (QPS)**         | 8.2               | 315.4         | 28.0            | 6.0                 | 34.4            |
+| **Mixed 40 Clients (QPS)**         | 30.0              | 203.8         | 128.8           | 8.0                 | 105.8           |
 
 ### Performance Charts
 
