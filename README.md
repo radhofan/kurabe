@@ -2,9 +2,9 @@
 
 In this repo, we created a reproducible benchmark suite comparing CognoDB Cloud against managed graph database cloud platforms (Neo4j AuraDB, Memgraph Cloud, ArangoDB Cloud, and SurrealDB Cloud) using identical datasets and query workloads under strict resource parity.
 
-## 1. Provider Selection
+## Provider Selection
 
-This benchmark suite evaluates CognoDB Cloud against four managed graph database platforms. The goal is an honest, reproducible performance assessment across data loading, graph traversals, lookups, aggregations, and concurrent read/write throughput.
+This benchmark suite evaluates CognoDB Cloud against four managed graph database platforms. The goal is a reproducible performance assessment across data loading, graph traversals, lookups, aggregations, and concurrent read/write throughput.
 
 ### Database Selection Criteria
 
@@ -12,7 +12,7 @@ Our selection criteria came down to matching free-tier resource capabilities as 
 
 - **Similar Technology Stack**: We chose [Neo4j AuraDB](https://neo4j.com/cloud/platform/auradb/) and [Memgraph](https://memgraph.com/) to compare against native Cypher/Bolt protocol implementations.
 - **Different Architectural Methods**: We included multi-model and document-graph engines like [ArangoDB](https://www.arangodb.com/) to contrast native graph engines against alternative storage methods, and also since a lot of other studies tries to benchmark ArangoDB againts native graph a lot.
-- **Seldom-Used Comparison**: To enrich data analysis, we also decided to pick a less popular provider and technology like [SurrealDB](https://surrealdb.com/) was specifically included as a less common multi-model database to evaluate how modern multi-model engines handle graph workloads.
+- **Seldom-Used Comparison**: To enrich data analysis, we also decided to pick a less popular provider and technology like [SurrealDB](https://surrealdb.com/) was specifically included as a less common multi-model database to evaluate how modern multi-model engines handle graph workloads and compare againts native one.
 
 Our selection criteria also takes consideration from published benchmarks and comparative studies:
 
@@ -43,7 +43,7 @@ Here we provide overview of proposed cloud providers underlying technology to ge
 
 We understand that different technologies produce different speed because of their purposes, however thats the exact reason we are benchmarking it here.
 
-## 2. Hardware & Environment
+## Hardware & Environment
 
 All providers were used by their lowest/free tier available plan. All regions are picked to the same US-EAST configuration to ensure same travel latency and since all provider happen to have that available.
 
@@ -71,7 +71,7 @@ To eliminate hardware advantages, we try our best to runner programmatically cap
 
 Hence readers need to take this comparison with a grain of salt, **the biggest factor is the CPU power** from each provider because we cannot reliably enforce OS level strictness, for RAM and storage we can cap it effectively though.
 
-## 3. Dataset & Queries
+## Dataset & Queries
 
 ### Dataset
 
@@ -92,6 +92,25 @@ Hence readers need to take this comparison with a grain of salt, **the biggest f
 - **Filtered Lookups**: Range and equality filter matching `age` and `region`.
 - **Aggregations**: Group-by aggregation (`count(p)` and `avg(p.age)` grouped by `region`).
 - **Mixed Concurrency**: 80% read / 20% write workload evaluated across 1, 10, and 40 concurrent client threads.
+- **Query Warmup**: Prior to recording latencies, `benchmark.py` executes an explicit warmup pass across all query adapters to warm up engine query planners and page caches. All reported p50 and p95 latency percentiles reflect post-warmup query performance. Future works can be done to provide cold start options also for further comparison.
+
+### Batching
+
+Each adapter employs its provider's native equivalent bulk batching mechanism to achieve fair data loading parity with Cypher-based engines.
+
+For Neo4j-based native graph databases (CognoDB, AuraDB, and Memgraph), batching uses parameterized Cypher queries over the official Bolt driver with the `UNWIND` clause (`UNWIND $batch AS row CREATE (:Person {id: row.id, ...})` for nodes and `UNWIND $batch AS row MATCH (src:Person {id: row.source}), (dst:Person {id: row.target}) CREATE (src)-[:CONNECTED_TO]->(dst)` for edges). The database engine unrolls the array inside a single server-side transaction.
+
+For ArangoDB, batching uses the native HTTP REST bulk import API (`/api/import?collection=person&type=documents`). This is ArangoDB's standard bulk ingestion method equivalent to Cypher batching; rather than executing AQL queries, it posts a raw JSON array of documents straight to ArangoDB's C++ import endpoint, bypassing query parsing and writing objects directly into document and edge storage collections.
+
+For SurrealDB, batching uses concatenated multi-statement SQL payloads sent over HTTP (`/sql`), which is SurrealDB's standard equivalent batching method. The adapter joins multiple statements into a single multi-line string (`CREATE person:1 SET ...; RELATE person:1->connected_to->person:2 SET weight=1.0;`) and posts the combined payload to the database endpoint, where SurrealDB parses and executes the batch sequentially within an HTTP transaction.
+
+To ensure fair and reliable data loading across platforms:
+
+- **Indexing Order**: All adapters follow the exact same loading sequence: ingest nodes first -> build and sync indexes second -> ingest relationships third. Creating indexes after node ingestion prevents index maintenance penalties during initial record creation across all engines.
+
+- **Batch Size Configuration**: Ingestion uses provider-optimal batch tuning. AuraDB, Memgraph, ArangoDB, and SurrealDB ingest nodes and relationships in batches of 1,000 items.
+
+<!-- CognoDB ingests nodes at 1,000 items per batch, but relationship ingestion uses smaller sub-batches of 250 items (`edge_batch_size = 250`). This sub-batching prevents cloud TCP connection drops on CognoDB's free tier when processing large Cypher transaction payloads over remote endpoints. We know that this is a major limitation, but based on our experiments, we could not reliably run it without getting broken TCP connections. -->
 
 ### Benchmark values
 
@@ -111,7 +130,7 @@ The benchmark execution script (`benchmark.py`) and database reset script (`rebu
 
 Note that we use default of 100K minimal relationship. This will still take about 25 minutes of running all services and getting the results.
 
-## 4. Results
+## Results
 
 ### Results Matrix
 
@@ -148,7 +167,7 @@ Note that we use default of 100K minimal relationship. This will still take abou
 
 ![Mixed Workload Concurrency](results/mixed_workload_concurrency.png)
 
-## 5. Engineering Deep Dive: Why the Numbers Differ
+## Engineering Deep Dive: Why the Numbers Differ
 
 ### Data Ingest Throughput
 
@@ -178,15 +197,15 @@ Note that we use default of 100K minimal relationship. This will still take abou
 - **CognoDB** scaled from 0.6 QPS at 1 client to 9.4 QPS at 10 clients and 37.4 QPS at 40 clients under concurrent write-lock scheduling.
 - **SurrealDB** scaled from 0.6 QPS (1 client) to 4.2 QPS (10 clients) and 10.8 QPS (40 clients).
 
-## 6. Threats to Validity
+## Threats to Validity
 
-- **CPU power**: Probably the because factor of all, based on our knowledge, we could not find enough reliable free providers that offers the exact same amount of CPU cores like free tier CognoDB, hence we tried our best using programmatic approaches although less favourable. We do provide the option of turning `apply_cpu_throttling=False` on or off if the reader wishes to see further comparison.
+- **CPU power**: Probably the because factor of all, based on our knowledge, we could not find enough reliable free providers that offers the exact same amount of CPU cores like free tier CognoDB, hence we tried our best using programmatic approaches although less favourable. We do provide the option of turning `apply_cpu_throttling` on or off if the reader wishes to see further comparison.
 - **Network Latency Impact**: All cloud instances were provisioned in the same region (US East) and tested over a stable connection to minimize latency variance as much as possible. However, network transit still plays a role in overall query execution times across remote cloud endpoints.
-- **Free Tier Driver Stability**: CognoDB Cloud free tier endpoints enforced strict TCP connection timeouts, requiring reconnect logic in the test adapter for bulk ingest which may impact performance.
 - **Query Dialect Variance**: Cypher was used for CognoDB, AuraDB, and Memgraph; AQL for ArangoDB; and SurrealQL for SurrealDB.
+- **Variance Testing**: Due to time limit assigned by the task (2 days), we were not simply able to run multiple times and get the variance result across multiple runs. Readers who want to reproduce this experiment is **strongly advised to run multiple times** to get reliable result. We provided option in code to run reach provoder multiple times, default is one run only.
 - **Dataset Generalization**: This study uses only the soc-pokec social dataset, to draw any meaningful conclusions, we consider it is best to add another dataset in the future which is easily doable via the modular code we designed.
 
-## 7. Quickstart
+## Quickstart
 
 ### Prerequisites
 

@@ -51,10 +51,13 @@ def run_mixed_workload_worker(adapter, duration_sec, node_ids, read_ratio=0.8):
 
     return ops_completed, errors
 
-def benchmark_mixed_workload(adapter_cls, node_ids, concurrency_levels, duration_sec=5):
+def benchmark_mixed_workload(adapter_cls, node_ids, concurrency_levels, duration_sec=5, apply_cpu_throttling=True):
     results = {}
     for clients in concurrency_levels:
-        adapters = [adapter_cls() for _ in range(clients)]
+        adapters = [
+            adapter_cls(apply_cpu_throttling=apply_cpu_throttling) if adapter_cls == CognoDBAdapter else adapter_cls()
+            for _ in range(clients)
+        ]
         for a in adapters:
             a.connect()
 
@@ -73,10 +76,10 @@ def benchmark_mixed_workload(adapter_cls, node_ids, concurrency_levels, duration
             a.close()
     return results
 
-def run_benchmark_for_adapter(db_key, nodes, edges, iterations=100, concurrency_levels=(1, 10, 40)):
+def run_benchmark_for_adapter(db_key, nodes, edges, iterations=100, concurrency_levels=(1, 10, 40), apply_cpu_throttling=True):
     key_clean = db_key.lower().strip()
     adapter_cls = ADAPTERS[key_clean]
-    adapter = adapter_cls()
+    adapter = adapter_cls(apply_cpu_throttling=apply_cpu_throttling) if key_clean == 'cognodb' else adapter_cls()
 
     print(f"\n=======================================================")
     print(f"   Starting PDF-Compliant Benchmark for: {adapter.name}")
@@ -151,7 +154,7 @@ def run_benchmark_for_adapter(db_key, nodes, edges, iterations=100, concurrency_
 
         # Category 5: Mixed Workload Concurrency Sweeps
         print(f"[{adapter.name}] PDF Metric: Mixed read/write sustained throughput ({concurrency_levels} clients)...")
-        mixed_stats = benchmark_mixed_workload(adapter_cls, node_ids, concurrency_levels, duration_sec=5)
+        mixed_stats = benchmark_mixed_workload(adapter_cls, node_ids, concurrency_levels, duration_sec=5, apply_cpu_throttling=apply_cpu_throttling)
         metrics.update(mixed_stats)
 
         # Category 6: Footprint (Query observable platform usage or report unobservable per PDF spec)
@@ -255,6 +258,8 @@ def main():
     parser.add_argument('--edges', type=int, default=100000, help='Number of relationships to sample from Pokec dataset (default: 100,000)')
     parser.add_argument('--iterations', type=int, default=100, help='Number of query iterations')
     parser.add_argument('--results-dir', type=str, default='results', help='Directory to save benchmark metrics and charts')
+    parser.add_argument('--apply-cpu-throttling', type=lambda x: (str(x).lower() in ['true', '1', 'yes']), default=True, help='Apply CPU duty-cycle throttling regulator (default: True)')
+    parser.add_argument('--no-cpu-throttling', action='store_false', dest='apply_cpu_throttling', help='Disable CPU duty-cycle throttling regulator')
     args = parser.parse_args()
 
     nodes, edges, estimated_bytes = generate_benchmark_dataset(num_edges=args.edges)
@@ -273,7 +278,7 @@ def main():
 
     new_results = []
     for db_key in target_services:
-        res = run_benchmark_for_adapter(db_key, nodes, edges, iterations=args.iterations)
+        res = run_benchmark_for_adapter(db_key, nodes, edges, iterations=args.iterations, apply_cpu_throttling=args.apply_cpu_throttling)
         if res:
             new_results.append(res)
 

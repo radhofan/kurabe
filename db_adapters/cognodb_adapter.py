@@ -70,9 +70,9 @@ class CognoDBAdapter(BaseDBAdapter):
         except Exception:
             pass
 
-        # 3. Insert relationships using sub-batches of 250 items
+        # 3. Insert relationships using batches of 1000 items
         print(f"   [CognoDB] Ingesting {len(edges):,} relationships...")
-        edge_batch_size = 250
+        edge_batch_size = batch_size
         for i in range(0, len(edges), edge_batch_size):
             batch = edges[i:i + edge_batch_size]
             self._execute_batch_with_reconnect(
