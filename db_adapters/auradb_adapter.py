@@ -42,6 +42,10 @@ class AuraDBAdapter(BaseDBAdapter):
 
             session.run('CREATE INDEX person_id_idx IF NOT EXISTS FOR (p:Person) ON (p.id)')
             session.run('CREATE INDEX person_filter_idx IF NOT EXISTS FOR (p:Person) ON (p.age, p.region)')
+            try:
+                session.run('CALL db.awaitIndexes(300)')
+            except Exception:
+                pass
 
             for i in range(0, len(edges), batch_size):
                 batch = edges[i:i + batch_size]

@@ -30,7 +30,7 @@ def rebuild_single_service(db_key, nodes, edges, batch_size=1000):
         raise ValueError(f"Unknown database service '{db_key}'. Available: cognodb, auradb, memgraph, surrealdb (or surreal), arangodb (or arango)")
 
     adapter_cls = ADAPTER_MAP[key_clean]
-    adapter = adapter_cls()
+    adapter = adapter_cls(apply_cpu_throttling=False) if key_clean == 'cognodb' else adapter_cls()
 
     print(f"\n==========================================")
     print(f"  Rebuilding Database: {adapter.name}")

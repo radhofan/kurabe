@@ -1,4 +1,4 @@
-# Graph Database Cloud Benchmarking: CognoDB vs. Competitors
+# Benchmarking CognoDB vs. other Graph Managed Databases
 
 In this repo, we created a reproducible benchmark suite comparing CognoDB Cloud against managed graph database cloud platforms (Neo4j AuraDB, Memgraph Cloud, ArangoDB Cloud, and SurrealDB Cloud) using identical datasets and query workloads under strict resource parity.
 
@@ -122,7 +122,7 @@ The benchmark execution script (`benchmark.py`) and database reset script (`rebu
 | `benchmark.py` | `--edges`              | int    | `100000`  | Number of relationships to sample from the SNAP Pokec dataset.                            |
 | `benchmark.py` | `--iterations`         | int    | `100`     | Number of query iterations per read workload after warmup.                                |
 | `benchmark.py` | `--results-dir`        | string | `results` | Output directory for CSV metrics matrix and generated PNG charts.                         |
-| `benchmark.py` | `apply_cpu_throttling` | bool   | `True`    | Toggles inter-query CPU duty-cycle throttling (`apply_cpu_throttling=False` disables it). |
+| `benchmark.py` | `--apply-cpu-throttling` | bool   | `True`    | Toggles inter-query CPU duty-cycle throttling (`apply_cpu_throttling=False` disables it). |
 | `rebuild.py`   | `--services`           | list   | `all`     | Target databases to wipe and repopulate.                                                  |
 | `rebuild.py`   | `--nodes`              | int    | `20000`   | Target node count to populate during database rebuild.                                    |
 | `rebuild.py`   | `--edges`              | int    | `100000`  | Target relationship count to populate during database rebuild.                            |
@@ -134,20 +134,20 @@ Note that we use default of 100K minimal relationship. This will still take abou
 
 ### Results Matrix
 
-| Metric                             | CognoDB           | AuraDB         | Memgraph          | SurrealDB           | ArangoDB        |
-| :--------------------------------- | :---------------- | :------------- | :---------------- | :------------------ | :-------------- |
-| **Load Time (sec)**                | 403.75            | 50.75          | 74.98             | 280.00              | 319.35          |
-| **Ingest Nodes/sec**               | 123.1             | 978.9          | 662.6             | 177.4               | 155.6           |
-| **Ingest Edges/sec**               | 247.7             | 1,970.4        | 1,333.6           | 357.1               | 313.1           |
-| **1-Hop p50 / p95 (ms)**           | 235.08 / 294.94   | 25.94 / 38.24  | 261.53 / 1,053.77 | 1,110.50 / 2,089.48 | 259.47 / 281.25 |
-| **2-Hop p50 / p95 (ms)**           | 237.53 / 306.00   | 25.08 / 73.95  | 261.60 / 1,080.90 | 1,101.43 / 2,208.88 | 256.67 / 268.81 |
-| **3-Hop p50 / p95 (ms)**           | 237.71 / 321.45   | 25.87 / 275.09 | 261.24 / 1,052.04 | 1,094.67 / 1,133.31 | 258.04 / 284.70 |
-| **Point Lookup p50 / p95 (ms)**    | 237.53 / 289.60   | 26.67 / 48.02  | 259.90 / 1,047.46 | 1,093.97 / 1,142.88 | 258.90 / 288.19 |
-| **Filtered Lookup p50 / p95 (ms)** | 238.01 / 1,209.11 | 23.85 / 55.16  | 260.47 / 1,211.07 | 1,096.45 / 1,185.23 | 258.35 / 274.72 |
-| **Aggregation p50 / p95 (ms)**     | 440.52 / 1,130.67 | 46.83 / 73.61  | 281.05 / 1,044.79 | 1,098.59 / 1,196.66 | 271.33 / 425.50 |
-| **Mixed 1 Client (QPS)**           | 0.6               | 31.0           | 2.2               | 0.6                 | 4.0             |
-| **Mixed 10 Clients (QPS)**         | 9.4               | 410.6          | 11.0              | 4.2                 | 38.0            |
-| **Mixed 40 Clients (QPS)**         | 37.4              | 1,224.8        | 44.4              | 10.8                | 152.0           |
+| Metric                             | CognoDB           | AuraDB         | Memgraph        | SurrealDB           | ArangoDB        |
+| :--------------------------------- | :---------------- | :------------- | :-------------- | :------------------ | :-------------- |
+| **Load Time (sec)**                | 433.49            | 12.47          | 55.52           | 307.02              | 51.57           |
+| **Ingest Nodes/sec**               | 114.6             | 3,985.5        | 894.9           | 161.8               | 963.4           |
+| **Ingest Edges/sec**               | 230.7             | 8,021.8        | 1,801.1         | 325.7               | 1,939.0         |
+| **1-Hop p50 / p95 (ms)**           | 256.52 / 443.56   | 23.45 / 28.57  | 269.01 / 410.27 | 1,304.94 / 2,031.93 | 259.28 / 333.79 |
+| **2-Hop p50 / p95 (ms)**           | 272.73 / 545.52   | 23.54 / 29.49  | 276.82 / 357.34 | 1,158.61 / 1,300.57 | 261.48 / 346.63 |
+| **3-Hop p50 / p95 (ms)**           | 286.39 / 511.00   | 22.57 / 27.42  | 300.62 / 350.06 | 1,377.56 / 1,992.83 | 255.18 / 475.01 |
+| **Point Lookup p50 / p95 (ms)**    | 269.68 / 364.24   | 24.95 / 34.45  | 277.90 / 365.42 | 1,199.01 / 1,829.44 | 262.52 / 405.02 |
+| **Filtered Lookup p50 / p95 (ms)** | 280.74 / 1,410.51 | 24.56 / 57.14  | 305.28 / 360.08 | 1,559.70 / 1,966.50 | 263.96 / 349.32 |
+| **Aggregation p50 / p95 (ms)**     | 425.57 / 1,255.69 | 45.25 / 61.71  | 271.39 / 341.46 | 1,613.52 / 1,833.18 | 306.70 / 437.11 |
+| **Mixed 1 Client (QPS)**           | 0.4               | 41.0           | 3.0             | 0.8                 | 3.6             |
+| **Mixed 10 Clients (QPS)**         | 8.2               | 315.4          | 28.0            | 6.0                 | 34.4            |
+| **Mixed 40 Clients (QPS)**         | 30.0              | 203.8          | 128.8           | 8.0                 | 105.8           |
 
 ### Performance Charts
 
@@ -171,31 +171,31 @@ Note that we use default of 100K minimal relationship. This will still take abou
 
 ### Data Ingest Throughput
 
-- **AuraDB and Memgraph** completed data loading in 50.75s (1,970.4 edges/sec) and 74.98s (1,333.6 edges/sec) respectively by processing bulk stream vectors in native memory.
-- **SurrealDB and ArangoDB** loaded in 280.00s (357.1 edges/sec) and 319.35s (313.1 edges/sec) due to document table mapping and SQL parsing overhead during bulk insertion.
-- **CognoDB** required 403.75s (247.7 edges/sec). Ingestion used 250-item sub-batches with reconnect handling under cloud socket pressure, plus Cypher endpoint lookup overhead per `MATCH...CREATE` relation statement.
+- **AuraDB and ArangoDB** achieved fast bulk data loading times of 12.47s (8,021.8 edges/sec) and 51.57s (1,939.0 edges/sec) respectively. Memgraph completed data loading in 55.52s (1,801.1 edges/sec).
+- **SurrealDB** required 307.02s (325.7 edges/sec) due to document table mapping and SQL statement processing overhead during bulk insertion.
+- **CognoDB** required 433.49s (230.7 edges/sec). Ingestion used batching with reconnect handling under cloud socket pressure, plus Cypher endpoint lookup overhead per relation statement.
 
 ### Traversal Performance & Tail Latencies
 
-- **AuraDB** delivered ~25ms p50 across 1-hop, 2-hop, and 3-hop queries due to pointer-chaining indexless adjacency.
-- **CognoDB** maintained steady median latencies (~235 to 237ms p50) across 1-hop, 2-hop, and 3-hop queries, with p95 tail latencies bounded between 294ms and 321ms.
-- **ArangoDB** demonstrated flat, consistent latency profiles (~256 to 259ms p50, 268 to 284ms p95) across all hop depths.
-- **Memgraph** logged fast p50 traversals (~261ms) but hit p95 tail latency spikes over 1,050ms across traversal runs under free-tier memory buffer constraints.
-- **SurrealDB** averaged over 1,090ms p50 across all hop depths (with 2-hop p95 reaching 2,208.88ms) because graph traversals execute via relational table joins under its free-tier engine.
+- **AuraDB** delivered ~22 to 23ms p50 across 1-hop, 2-hop, and 3-hop queries with low tail latencies (p95 under 30ms) due to pointer-chaining indexless adjacency.
+- **CognoDB** maintained median latencies between 256.52ms and 286.39ms p50 across 1-hop, 2-hop, and 3-hop queries, with p95 tail latencies bounded between 443.56ms and 545.52ms.
+- **ArangoDB** demonstrated consistent median latencies (~255 to 261ms p50) across all hop depths with p95 bounded between 333.79ms and 475.01ms.
+- **Memgraph** logged median traversals between 269.01ms (1-hop) and 300.62ms (3-hop) with p95 tail latencies between 350.06ms and 410.27ms.
+- **SurrealDB** averaged between 1,158.61ms and 1,377.56ms p50 across hop depths (with 1-hop p95 reaching 2,031.93ms) because graph traversals execute via relational table joins under its engine.
 
 ### Lookups & Aggregations
 
-- **Point Lookups**: AuraDB completed point lookups in 26.67ms p50. CognoDB (237.53ms p50), ArangoDB (258.90ms p50), and Memgraph (259.90ms p50) were bound primarily by network TLS transport to US East endpoints. SurrealDB averaged 1,093.97ms p50.
-- **Filtered Lookups**: CognoDB (238.01ms p50) and Memgraph (260.47ms p50) both experienced p95 tail latency spikes (~1,209ms and ~1,211ms) when non-selective compound filters triggered scan fallbacks. ArangoDB maintained 258.35ms p50 and 274.72ms p95.
-- **Aggregations**: AuraDB led at 46.83ms p50. ArangoDB and Memgraph logged 271.33ms and 281.05ms p50. CognoDB recorded 440.52ms p50 (1,130.67ms p95) due to full label scanning under 0.25 vCPU throttling. SurrealDB took 1,098.59ms p50.
+- **Point Lookups**: AuraDB completed point lookups in 24.95ms p50 (34.45ms p95). ArangoDB (262.52ms p50), CognoDB (269.68ms p50), and Memgraph (277.90ms p50) were bound primarily by network TLS transport to US East endpoints. SurrealDB averaged 1,199.01ms p50.
+- **Filtered Lookups**: AuraDB led at 24.56ms p50 (57.14ms p95). ArangoDB (263.96ms p50) and Memgraph (305.28ms p50) maintained tight tail latencies (~349ms and ~360ms p95), while CognoDB (280.74ms p50) experienced a p95 tail latency spike of 1,410.51ms on complex filter evaluations. SurrealDB logged 1,559.70ms p50.
+- **Aggregations**: AuraDB led at 45.25ms p50 (61.71ms p95). Memgraph and ArangoDB logged 271.39ms and 306.70ms p50. CognoDB recorded 425.57ms p50 (1,255.69ms p95) due to label scanning under CPU duty-cycle regulation. SurrealDB took 1,613.52ms p50.
 
 ### Concurrency Scaling (80% Read / 20% Write)
 
-- **AuraDB** scaled linearly from 31.0 QPS (1 client) to 410.6 QPS (10 clients) and 1,224.8 QPS (40 clients) due to lock-free transaction scheduling.
-- **ArangoDB** scaled to 152.0 QPS at 40 clients.
-- **Memgraph** scaled to 44.4 QPS at 40 clients.
-- **CognoDB** scaled from 0.6 QPS at 1 client to 9.4 QPS at 10 clients and 37.4 QPS at 40 clients under concurrent write-lock scheduling.
-- **SurrealDB** scaled from 0.6 QPS (1 client) to 4.2 QPS (10 clients) and 10.8 QPS (40 clients).
+- **AuraDB** delivered 41.0 QPS at 1 client, peaked at 315.4 QPS at 10 clients, and registered 203.8 QPS at 40 clients under connection pool constraints.
+- **Memgraph** scaled from 3.0 QPS (1 client) to 28.0 QPS (10 clients) and 128.8 QPS (40 clients).
+- **ArangoDB** scaled from 3.6 QPS (1 client) to 34.4 QPS (10 clients) and 105.8 QPS (40 clients).
+- **CognoDB** scaled from 0.4 QPS at 1 client to 8.2 QPS at 10 clients and 30.0 QPS at 40 clients under concurrent write-lock scheduling.
+- **SurrealDB** scaled from 0.8 QPS (1 client) to 6.0 QPS (10 clients) and 8.0 QPS (40 clients).
 
 ## Threats to Validity
 
