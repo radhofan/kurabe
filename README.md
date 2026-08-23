@@ -1,4 +1,4 @@
-# ⚡ Graph Database Cloud Benchmarking: CognoDB vs. Competitors
+# ⚡ Benchmarking CognoDB vs. other Graph Managed Databases
 
 In this repo, we created a reproducible benchmark suite comparing CognoDB Cloud against managed graph database cloud platforms (Neo4j AuraDB, Memgraph Cloud, ArangoDB Cloud, and SurrealDB Cloud) using identical datasets and query workloads under strict resource parity.
 
