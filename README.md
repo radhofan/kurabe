@@ -185,15 +185,21 @@ Note that we use default of 100K minimal relationship. This will still take abou
 
 ![Traversal Latencies](results/traversal_latencies.png)
 
-#### Lookup and Aggregation Latencies
+#### Lookup and Aggregation p50 Latencies
 
-![Lookup Aggregation Latencies](results/lookup_aggregation_latencies.png)
+![Lookup Aggregation p50 Latencies](results/lookup_aggregation_latencies.png)
+
+#### Lookup and Aggregation p95 Tail Latencies
+
+![Lookup Aggregation p95 Latencies](results/lookup_aggregation_p95_latencies.png)
 
 #### Mixed Workload Concurrency Sweep (80% Read / 20% Write)
 
 ![Mixed Workload Concurrency](results/mixed_workload_concurrency.png)
 
 ## 🧠 Engineering Deep Dive: Why the Numbers Differ
+
+We will explain the numbers in each metric in our best way possible and connect it to the causes mainly because of the different architecture of each platform and part of our code implementation in this section.
 
 ### Data Ingest Throughput
 

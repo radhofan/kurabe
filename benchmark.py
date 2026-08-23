@@ -215,7 +215,7 @@ def generate_result_charts(df, results_dir='results'):
     plt.savefig(os.path.join(results_dir, 'traversal_latencies.png'))
     plt.close()
 
-    # Chart 3: Lookups & Aggregations
+    # Chart 3: Lookups & Aggregations (p50 Latencies)
     plt.figure(figsize=(10, 6))
     width = 0.2
     x = np.arange(len(platforms))
@@ -232,7 +232,24 @@ def generate_result_charts(df, results_dir='results'):
     plt.savefig(os.path.join(results_dir, 'lookup_aggregation_latencies.png'))
     plt.close()
 
-    # Chart 4: Mixed Workload Concurrency Sweep
+    # Chart 4: Lookups & Aggregations (p95 Tail Latencies)
+    plt.figure(figsize=(10, 6))
+    width = 0.2
+    x = np.arange(len(platforms))
+    plt.bar(x - 1.5*width, df['lookup_point_p95_ms'], width, label='Point Lookup p95')
+    plt.bar(x - 0.5*width, df['lookup_filtered_p95_ms'], width, label='Filtered Lookup p95')
+    plt.bar(x + 0.5*width, df['aggregation_p95_ms'], width, label='Aggregation p95')
+    plt.xlabel('Database Platform')
+    plt.ylabel('Latency (ms)')
+    plt.title('Lookup and Aggregation p95 Tail Latencies')
+    plt.xticks(x, platforms)
+    plt.legend()
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(os.path.join(results_dir, 'lookup_aggregation_p95_latencies.png'))
+    plt.close()
+
+    # Chart 5: Mixed Workload Concurrency Sweep
     plt.figure(figsize=(10, 6))
     client_cols = [c for c in df.columns if c.startswith('mixed_qps_')]
     client_labels = [c.replace('mixed_qps_', '').replace('_clients', ' Clients') for c in client_cols]
@@ -249,7 +266,7 @@ def generate_result_charts(df, results_dir='results'):
     plt.savefig(os.path.join(results_dir, 'mixed_workload_concurrency.png'))
     plt.close()
 
-    print(f"\nGenerated 4 benchmark metric charts in '{results_dir}/' folder.")
+    print(f"\nGenerated 5 benchmark metric charts in '{results_dir}/' folder.")
 
 def main():
     parser = argparse.ArgumentParser(description='Graph Database Cloud Benchmarking Suite for SNAP Pokec')
