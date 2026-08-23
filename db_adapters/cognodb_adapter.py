@@ -149,22 +149,21 @@ class CognoDBAdapter(BaseDBAdapter):
         return self._execute_cypher(query, {'src': source_id, 'dst': target_id})
 
     def get_footprint(self):
-        ram_val = "not observable"
-        storage_val = "not observable"
+        ram_val = "Not observable"
+        storage_val = "Not observable"
         if self.driver:
             try:
                 with self.driver.session() as session:
                     res = session.run("CALL apoc.meta.stats() YIELD nodeCount, relCount RETURN nodeCount, relCount")
                     rec = res.single()
-                    if rec:
+                    if rec and rec.get('nodeCount') is not None and rec.get('relCount') is not None:
                         storage_val = f"{rec['nodeCount']} nodes / {rec['relCount']} rels"
             except Exception:
                 pass
         return {
             'allocated_ram': ram_val,
             'allocated_cpu': '0.5 vCPU burst (throttled to 0.25 vCPU cap)',
-            'max_storage': storage_val,
-            'info': 'CognoDB Cloud Free Tier'
+            'max_storage': storage_val
         }
 
     def close(self):

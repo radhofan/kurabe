@@ -159,10 +159,9 @@ def run_benchmark_for_adapter(db_key, nodes, edges, iterations=100, concurrency_
 
         # Category 6: Footprint (Query observable platform usage or report unobservable per PDF spec)
         fp = adapter.get_footprint()
-        metrics['allocated_ram'] = fp.get('allocated_ram', 'not observable')
+        metrics['allocated_ram'] = fp.get('allocated_ram', 'Not observable')
         metrics['target_vcpu'] = fp.get('allocated_cpu', '0.25 vCPU cap')
-        metrics['footprint_storage'] = fp.get('max_storage', 'not observable')
-        metrics['footprint_info'] = fp.get('info', f'{adapter.name} Cloud')
+        metrics['footprint_storage'] = fp.get('max_storage', 'Not observable')
 
         print(f"[{adapter.name}] All required PDF metrics collected successfully.")
         return metrics

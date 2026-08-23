@@ -97,22 +97,21 @@ class MemgraphAdapter(BaseDBAdapter):
         return self._execute_cypher(query, {'src': source_id, 'dst': target_id})
 
     def get_footprint(self):
-        ram_val = "not observable"
-        storage_val = "not observable"
+        ram_val = "Not observable"
+        storage_val = "Not observable"
         if self.driver:
             try:
                 with self.driver.session() as session:
                     res = session.run("CALL mg.memory() YIELD * RETURN *")
                     rec = res.single()
-                    if rec and 'allocator_allocated' in rec:
+                    if rec and rec.get('allocator_allocated') is not None:
                         ram_val = f"{rec['allocator_allocated'] / (1024**2):.1f} MB"
             except Exception:
                 pass
         return {
             'allocated_ram': ram_val,
             'allocated_cpu': '0.25 vCPU cap',
-            'max_storage': storage_val,
-            'info': 'Memgraph Cloud Instance'
+            'max_storage': storage_val
         }
 
     def close(self):

@@ -99,20 +99,25 @@ class SurrealDBAdapter(BaseDBAdapter):
         return elapsed
 
     def get_footprint(self):
-        ram_val = "not observable"
-        storage_val = "not observable"
-        try:
-            sql = "INFO FOR DB;"
-            elapsed, res = self._send_sql(sql)
-            if res:
-                storage_val = "observable via DB info"
-        except Exception:
-            pass
+        ram_val = "Not observable"
+        storage_val = "Not observable"
+        if self.url:
+            try:
+                sql = "SELECT count() FROM person GROUP ALL; SELECT count() FROM connected_to GROUP ALL;"
+                elapsed, res = self._send_sql(sql)
+                if res and isinstance(res, list) and len(res) >= 2:
+                    p_res = res[0].get('result', [])
+                    c_res = res[1].get('result', [])
+                    p_count = p_res[0].get('count', 0) if p_res and isinstance(p_res, list) and len(p_res) > 0 else 0
+                    c_count = c_res[0].get('count', 0) if c_res and isinstance(c_res, list) and len(c_res) > 0 else 0
+                    if p_count or c_count:
+                        storage_val = f"{p_count} nodes / {c_count} rels"
+            except Exception:
+                pass
         return {
             'allocated_ram': ram_val,
             'allocated_cpu': '0.25 vCPU cap',
-            'max_storage': storage_val,
-            'info': 'SurrealDB Cloud Instance'
+            'max_storage': storage_val
         }
 
     def close(self):

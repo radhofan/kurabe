@@ -128,15 +128,22 @@ class ArangoDBAdapter(BaseDBAdapter):
         return self._execute_aql(query, {'from_val': f'persons/{source_id}', 'to_val': f'persons/{target_id}'})
 
     def get_footprint(self):
-        ram_val = "not observable"
-        storage_val = "not observable"
+        ram_val = "Not observable"
+        storage_val = "Not observable"
         try:
-            if hasattr(self, 'persons') and hasattr(self, 'connected_to'):
+            if hasattr(self, 'persons') and hasattr(self, 'connected_to') and self.persons and self.connected_to:
                 p_stats = self.persons.statistics()
                 c_stats = self.connected_to.statistics()
-                bytes_sum = p_stats.get('size', 0) + c_stats.get('size', 0)
+                p_size = p_stats.get('dataSize', 0) or p_stats.get('size', 0) or p_stats.get('figures', {}).get('dataSize', 0)
+                c_size = c_stats.get('dataSize', 0) or c_stats.get('size', 0) or c_stats.get('figures', {}).get('dataSize', 0)
+                bytes_sum = p_size + c_size
                 if bytes_sum > 0:
                     storage_val = f"{bytes_sum / (1024**2):.2f} MB"
+                else:
+                    p_count = self.persons.count()
+                    c_count = self.connected_to.count()
+                    if p_count or c_count:
+                        storage_val = f"{p_count} nodes / {c_count} rels"
         except Exception:
             pass
 
@@ -151,8 +158,7 @@ class ArangoDBAdapter(BaseDBAdapter):
         return {
             'allocated_ram': ram_val,
             'allocated_cpu': '0.25 vCPU cap',
-            'max_storage': storage_val,
-            'info': 'ArangoDB Cloud Instance'
+            'max_storage': storage_val
         }
 
     def close(self):
