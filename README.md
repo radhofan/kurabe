@@ -1,6 +1,6 @@
-# ⚡ Benchmarking CognoDB vs. other Graph Managed Databases
+# Kurabe - Graph Database Benchmarking Suite
 
-In this repo, we created a reproducible benchmark suite comparing CognoDB Cloud against managed graph database cloud platforms (Neo4j AuraDB, Memgraph Cloud, ArangoDB Cloud, and SurrealDB Cloud) using identical datasets and query workloads under strict resource parity.
+Kurabe is a reproducible benchmark suite comparing graph database engines (CognoDB Cloud, Neo4j AuraDB, Memgraph Cloud, ArangoDB Cloud, and SurrealDB Cloud) using identical datasets and query workloads under strict resource parity.
 
 **Contents**
 
